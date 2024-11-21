@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora INSS</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        nav {
+            background-color: #005da8;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            margin-right: 10px;
+        }
+        nav a:hover {
+            background-color: #004785;
+        }
+        .calculator {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        input[type="number"] {
+            padding: 8px;
+            width: 200px;
+        }
+        button {
+            background-color: #005da8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #004785;
+        }
+        #resultado {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .chart-container {
+            margin-top: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="index.html">Início</a>
+            <a href="sla.html">Calculadora</a>
+        </nav>
+
+        <h1>Calculadora INSS</h1>
+        
+        <div class="calculator">
+            <div class="input-group">
+                <label for="salario">Salário Bruto:</label>
+                <input type="number" id="salario" step="0.01" min="0">
+            </div>
+            <button onclick="calcularINSS()">Calcular</button>
+            <div id="resultado"></div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="graficoINSS"></canvas>
+        </div>
+    </div>
+
+    <script>
+        function calcularINSS() {
+            const salario = parseFloat(document.getElementById('salario').value);
+            let desconto = 0;
+            let aliquota = 0;
+            
+            if (salario <= 1412) {
+                desconto = salario * 0.075;
+                aliquota = 7.5;
+            } else if (salario <= 2666.68) {
+                desconto = (1412 * 0.075) + ((salario - 1412) * 0.09);
+                aliquota = 9;
+            } else if (salario <= 4000.03) {
+                desconto = (1412 * 0.075) + ((2666.68 - 1412) * 0.09) + ((salario - 2666.68) * 0.12);
+                aliquota = 12;
+            } else if (salario <= 7786.02) {
+                desconto = (1412 * 0.075) + ((2666.68 - 1412) * 0.09) + ((4000.03 - 2666.68) * 0.12) + ((salario - 4000.03) * 0.14);
+                aliquota = 14;
+            } else {
+                desconto = (1412 * 0.075) + ((2666.68 - 1412) * 0.09) + ((4000.03 - 2666.68) * 0.12) + ((7786.02 - 4000.03) * 0.14);
+                aliquota = 14;
+            }
+
+            document.getElementById('resultado').innerHTML = `
+                Alíquota Efetiva: ${aliquota}%<br>
+                Desconto INSS: R$ ${desconto.toFixed(2)}<br>
+                Salário Líquido: R$ ${(salario - desconto).toFixed(2)}
+            `;
+
+            atualizarGrafico(salario, desconto);
+        }
+
+        function atualizarGrafico(salario, desconto) {
+            const ctx = document.getElementById('graficoINSS').getContext('2d');
+            
+            // Destruir gráfico anterior se existir
+            if (window.myChart instanceof Chart) {
+                window.myChart.destroy();
+            }
+
+            window.myChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Salário Líquido', 'Desconto INSS'],
+                    datasets: [{
+                        data: [salario - desconto, desconto],
+                        backgroundColor: ['#005da8', '#ff4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Distribuição Salarial'
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
